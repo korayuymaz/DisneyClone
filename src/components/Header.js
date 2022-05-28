@@ -2,11 +2,12 @@ import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {useNavigate} from "react-router-dom"
 import { auth, provider } from "../firebase";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signOut } from "firebase/auth";
 import { 
   selectUserName, 
   selectUserPhoto, 
-  setUserLoginDetails
+  setUserLoginDetails,
+  setSignOutState
 } from '../features/users/userSlice';
 import { useEffect } from 'react';
 
@@ -26,15 +27,21 @@ const Header = (props) => {
     }, [userName]);
 
     const handleAuth = () => {
-      signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log(result)
-        setUser(result.user);
-        // ...
-      }).catch((error) => {
-        console.log(error)
-        // ...
-      });
+      if (!userName) {
+        signInWithPopup(auth, provider)
+        .then((result) => {
+          setUser(result.user);
+        }).catch((error) => {
+          console.log(error)
+        });
+      } else if (userName) {
+          signOut(auth).then(() => {
+            dispatch(setSignOutState());
+            history("/");
+          }).catch((error) => {
+            alert(error.message)
+          });
+      }
     }
 
     const setUser = (user) => {
